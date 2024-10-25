@@ -140,7 +140,3 @@ curl http://localhost:8080/users
 - Add input validation middleware
 - Implement session management
 - Add API documentation using Swagger/OpenAPI
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
