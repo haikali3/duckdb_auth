@@ -37,8 +37,7 @@ func RegisterUser(db *sql.DB, username, password string) error {
 	// Insert the new user with the fetched userID
 	_, err = db.Exec("INSERT INTO users (user_id, username, password_hash) VALUES (?, ?, ?)", userID, username, hashedPassword)
 	if err != nil {
-		// Handle unique constraint violation for username
-		if err.Error() == "UNIQUE constraint failed: users.username" {
+		if err.Error() == "Constraint Error: UNIQUE constraint failed: users.username" {
 			return errors.New("username already exists")
 		}
 		return err

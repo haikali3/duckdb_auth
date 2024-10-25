@@ -5,11 +5,15 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"net/http"
 )
 
+var db *sql.DB
+
 func main() {
+	var err error
 	// Connect to DuckDB (creates a new database file if not existing)
-	db, err := sql.Open("duckdb", "auth.db")
+	db, err = sql.Open("duckdb", "auth.db")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -18,25 +22,25 @@ func main() {
 	// Initialize database tables
 	InitDatabase(db)
 
-	// Test registering a user
-	username := "testuser"
-	password := "securepassword"
-
-	err = RegisterUser(db, username, password)
+	// Retrieve and display all users (for testing purposes)
+	users, err := GetAllUsers(db)
 	if err != nil {
-		log.Printf("User registration failed: %v", err)
+		log.Printf("Failed to retrieve users: %v", err)
 	} else {
-		fmt.Println("User registered successfully!")
+		fmt.Println("Users in the database:")
+		for _, user := range users {
+			fmt.Printf("UserID: %d, Username: %s\n", user.UserID, user.Username)
+		}
 	}
 
-	// Test user authentication
-	success, err := AuthenticateUser(db, username, password)
-	if err != nil {
+	// Set up HTTP routes
+	http.HandleFunc("/register", RegisterHandler)
+	http.HandleFunc("/login", LoginHandler)
+	http.HandleFunc("/users", UsersHandler)
+
+	// Start the server
+	log.Println("Server starting on port 8080...")
+	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)
-	}
-	if success {
-		fmt.Println("User authenticated successfully!")
-	} else {
-		fmt.Println("Authentication failed.")
 	}
 }
