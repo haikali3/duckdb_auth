@@ -1,11 +1,10 @@
+// main.go
 package main
 
 import (
 	"database/sql"
 	"fmt"
 	"log"
-
-	_ "github.com/marcboeker/go-duckdb"
 )
 
 func main() {
@@ -16,28 +15,28 @@ func main() {
 	}
 	defer db.Close()
 
-	// Create tables for users and roles
-	createTables := `
-    CREATE TABLE IF NOT EXISTS users (
-        user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username VARCHAR UNIQUE,
-        password_hash VARCHAR
-    );
-    CREATE TABLE IF NOT EXISTS roles (
-        role_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        role_name VARCHAR UNIQUE
-    );
-    CREATE TABLE IF NOT EXISTS user_roles (
-        user_id INTEGER,
-        role_id INTEGER,
-        FOREIGN KEY (user_id) REFERENCES users(user_id),
-        FOREIGN KEY (role_id) REFERENCES roles(role_id)
-    );
-    `
+	// Initialize database tables
+	InitDatabase(db)
 
-	if _, err := db.Exec(createTables); err != nil {
-		log.Fatal(err)
+	// Test registering a user
+	username := "testuser"
+	password := "securepassword"
+
+	err = RegisterUser(db, username, password)
+	if err != nil {
+		log.Printf("User registration failed: %v", err)
+	} else {
+		fmt.Println("User registered successfully!")
 	}
 
-	fmt.Println("Database initialized with users, roles, and user_roles tables.")
+	// Test user authentication
+	success, err := AuthenticateUser(db, username, password)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if success {
+		fmt.Println("User authenticated successfully!")
+	} else {
+		fmt.Println("Authentication failed.")
+	}
 }

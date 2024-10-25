@@ -3,6 +3,8 @@ package main
 
 import (
 	"database/sql"
+	"errors"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -25,8 +27,24 @@ func RegisterUser(db *sql.DB, username, password string) error {
 		return err
 	}
 
-	_, err = db.Exec("INSERT INTO users (username, password_hash) VALUES (?, ?)", username, hashedPassword)
-	return err
+	// Fetch the next user_id from the sequence
+	var userID int
+	err = db.QueryRow("SELECT nextval('user_id_seq')").Scan(&userID)
+	if err != nil {
+		return err
+	}
+
+	// Insert the new user with the fetched userID
+	_, err = db.Exec("INSERT INTO users (user_id, username, password_hash) VALUES (?, ?, ?)", userID, username, hashedPassword)
+	if err != nil {
+		// Handle unique constraint violation for username
+		if err.Error() == "UNIQUE constraint failed: users.username" {
+			return errors.New("username already exists")
+		}
+		return err
+	}
+
+	return nil
 }
 
 // AuthenticateUser checks if username and password match any record in the database
@@ -40,6 +58,5 @@ func AuthenticateUser(db *sql.DB, username, password string) (bool, error) {
 		return false, err
 	}
 
-	// Compare hash with provided password
 	return CheckPasswordHash(password, storedHash), nil
 }

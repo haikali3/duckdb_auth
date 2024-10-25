@@ -3,20 +3,22 @@ package main
 
 import (
 	"database/sql"
-	_ "github.com/marcboeker/go-duckdb"
 	"log"
+
+	_ "github.com/marcboeker/go-duckdb"
 )
 
-// InitDatabase creates the necessary tables for authentication
+// InitDatabase creates the necessary tables and sequence for authentication
 func InitDatabase(db *sql.DB) {
 	createTables := `
+    CREATE SEQUENCE IF NOT EXISTS user_id_seq;
     CREATE TABLE IF NOT EXISTS users (
-        user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER PRIMARY KEY,
         username VARCHAR UNIQUE,
         password_hash VARCHAR
     );
     CREATE TABLE IF NOT EXISTS roles (
-        role_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        role_id INTEGER PRIMARY KEY,
         role_name VARCHAR UNIQUE
     );
     CREATE TABLE IF NOT EXISTS user_roles (
